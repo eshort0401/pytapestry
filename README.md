@@ -1,14 +1,20 @@
 Copyright Ewan Short. All rights reserved.<br>
 
 # Introduction
-Happy birthday Zoe! This repository contains a script for creating templates for tapestry and related crafts from a base image, for a specified number of colours, canvas mesh count and intended tapestry size. The script is based on the `scikit-learn` K-means colour quantisation [tutorial](https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html).
+Happy 40th birthday Zoe! This repository contains a script for creating templates for tapestry and related crafts from a base image, for a specified number of colours, canvas mesh count and intended tapestry size. The script is based on the `scikit-learn` K-means colour quantisation [tutorial](https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html).
 
 As an example, this base image
+
 ![example image](example_images/boomer2_head.jpg "Example Image")
+
 becomes this 20 colour tapestry template
+
 ![example template](template_gallery/boomer2_head_20_10_254.png "Example Image")
+
 for a tapestry 100 cells wide, or this template
+
 ![example template](template_gallery/boomer2_head_20_10_127.png "Example Image")
+
 for a tapestry 50 cells wide.
 
 
