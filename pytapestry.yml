@@ -1,0 +1,8 @@
+name: pytapestry
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - scikit-image=0.18.3
+  - scikit-learn=1.0.1
+prefix: C:\Users\eshor\miniconda3\envs\pytapestry
