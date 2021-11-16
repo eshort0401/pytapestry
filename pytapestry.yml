@@ -5,4 +5,5 @@ channels:
 dependencies:
   - scikit-image=0.18.3
   - scikit-learn=1.0.1
+  - matplotlib-base=3.4.3
 prefix: C:\Users\eshor\miniconda3\envs\pytapestry
