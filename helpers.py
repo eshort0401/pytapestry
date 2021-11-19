@@ -5,6 +5,33 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import matplotlib.patheffects as pe
 
+from skimage.measure import label
+from skimage.segmentation import expand_labels
+
+
+def remove_isolated_pixels(labels_array, min_pixels):
+
+    connected_regions = label(labels_array, connectivity=2, background=-10)
+    lbl, counts = np.unique(connected_regions, return_counts=True)
+    small_regions = lbl[counts < min_pixels]
+    iteration = 0
+    while small_regions.size > 0 and iteration < 5:
+        print('Iteration {}'.format(iteration))
+        for i in small_regions:
+            region = (connected_regions == i).astype(int)
+            boundary = expand_labels(region, distance=1.9) - region
+            boundary_colours = labels_array[np.where(boundary)]
+            mode = np.bincount(boundary_colours).argmax()
+            labels_array[np.where(region)] = mode
+        connected_regions = label(labels_array, connectivity=2, background=-10)
+        lbl, counts = np.unique(connected_regions, return_counts=True)
+        small_regions = lbl[counts < min_pixels]
+        iteration += 1
+        if iteration == 5:
+            print('Maximum iterations reached. Algorithm did not converge.')
+
+    return labels_array
+
 
 def create_swatch(colours, out_dir, filename):
 
@@ -35,7 +62,7 @@ def create_swatch(colours, out_dir, filename):
         rcParams.update({'font.serif': 'Times New Roman'})
 
         colour_rgb = np.round(colour*255).astype(int)
-        label = 'RGB = ({}, {}, {})'.format(
+        lbl = 'RGB = ({}, {}, {})'.format(
             colour_rgb[0], colour_rgb[1], colour_rgb[2])
 
         ax.text(
@@ -45,7 +72,7 @@ def create_swatch(colours, out_dir, filename):
                 pe.Stroke(linewidth=3, foreground='k'), pe.Normal()])
 
         ax.text(
-            text_pos_x, y-cell_height/2, label, fontsize=10,
+            text_pos_x, y-cell_height/2, lbl, fontsize=10,
             horizontalalignment='left', verticalalignment='center')
 
         ax.add_patch(
@@ -82,5 +109,5 @@ def add_markers(im, interval, pixel_scale):
     return im
 
 
-def recreate_image(codebook, labels, width, height):
-    return codebook[labels].reshape(height, width, -1)
+def recreate_image(codebook, lbls, width, height):
+    return codebook[lbls].reshape(height, width, -1)

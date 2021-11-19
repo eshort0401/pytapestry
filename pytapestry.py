@@ -38,6 +38,9 @@ parser.add_argument(
 parser.add_argument(
     '--output_dir', '-o', type=Path, default=None,
     help='output directory')
+parser.add_argument(
+    '--min-pixels', '-p', type=int, default=2,
+    help='minimum number of connected pixels of a given colour')
 
 args = parser.parse_args()
 
@@ -68,12 +71,14 @@ print('Calculating k-means. Please Wait.')
 im_array_sample = shuffle(im_array, random_state=0, n_samples=1_000)
 kmeans = KMeans(n_clusters=args.n_colours, random_state=0).fit(im_array_sample)
 labels = kmeans.predict(im_array)
+labels_array = np.reshape(labels, (height, width))
 
-codebook_random = shuffle(im_array, random_state=0, n_samples=args.n_colours)
-labels_random = pairwise_distances_argmin(codebook_random, im_array, axis=0)
+print('Removing isolated pixels. Please Wait.')
+labels_array = helpers.remove_isolated_pixels(labels_array, args.min_pixels)
 
 im_reduced = helpers.recreate_image(
-    kmeans.cluster_centers_, labels, width, height)
+    kmeans.cluster_centers_, labels_array, width, height)
+
 im_reduced_scaled = np.repeat(im_reduced, repeats=pixel_scale, axis=0)
 im_reduced_scaled = np.repeat(im_reduced_scaled, repeats=pixel_scale, axis=1)
 
