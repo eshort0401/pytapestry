@@ -8,6 +8,7 @@ argument. Happy 40th Birthday Zoe!
 
 import numpy as np
 from pathlib import Path
+import shutil
 import argparse
 import helpers
 
@@ -54,6 +55,20 @@ if args.tapestry_width_cells == 0:
 else:
     tapestry_width = args.tapestry_width_cells/args.canvas_count*2.54/100
 
+out_sub_dir_name = args.filepath.stem + '_{}_{}_{}_{}_{}'.format(
+    args.n_colours, args.canvas_count, int(np.floor(tapestry_width*1000)),
+    args.markers, args.min_pixels)
+
+out_sub_dir = args.output_dir / out_sub_dir_name
+try:
+    shutil.rmtree(out_sub_dir)
+    print('Deleting existing directory.')
+except OSError as e:
+    print(f"Error:{ e.strerror}")
+    print('No existing directory.')
+print('Creating new directory.')
+out_sub_dir.mkdir(parents=True, exist_ok=True)
+
 print('Reading image.')
 tap_im = imread(args.filepath)
 height, width, depth = tap_im.shape
@@ -79,12 +94,13 @@ labels_array = helpers.remove_isolated_pixels(labels_array, args.min_pixels)
 im_reduced = helpers.recreate_image(
     kmeans.cluster_centers_, labels_array, width, height)
 
+if args.markers > 0:
+    print('Saving sub-templates. Please Wait.')
+    helpers.create_sub_templates(
+        im_reduced, labels_array, args.markers, out_sub_dir)
+
 im_reduced_scaled = np.repeat(im_reduced, repeats=pixel_scale, axis=0)
 im_reduced_scaled = np.repeat(im_reduced_scaled, repeats=pixel_scale, axis=1)
-
-out_filename = args.filepath.stem + '_{}_{}_{}.png'.format(
-    args.n_colours, args.canvas_count, int(np.floor(tapestry_width*1000)))
-out_filepath = args.output_dir / out_filename
 
 if args.markers > 0:
     im_reduced_scaled = helpers.add_markers(
@@ -92,17 +108,20 @@ if args.markers > 0:
 
 print('Creating swatch.')
 helpers.create_swatch(
-    kmeans.cluster_centers_, args.output_dir, 'swatch_' + out_filename)
+    kmeans.cluster_centers_, out_sub_dir)
 
-imsave(out_filepath, (im_reduced_scaled*255).astype(np.uint8), format='png')
+imsave(
+    out_sub_dir / 'master_template.png',
+    (im_reduced_scaled*255).astype(np.uint8),
+    format='png')
 
 print('Template is {} cells high, and {} cells wide.'.format(
     im_reduced.shape[0], im_reduced.shape[1]))
-print('Template image is saved as {}.'.format(out_filepath))
-msg = 'To better reveal each cell, the template image has been '
+print('Template image is saved as {}.'.format(out_sub_dir))
+msg = 'To better reveal each cell, the master template image has been '
 msg += 'scaled by a factor of {}.'.format(pixel_scale)
 print(msg)
 msg = 'Tapestry cells thus correspond to {0} by {0} '.format(pixel_scale)
-msg += 'blocks of pixels in the template image.'
+msg += 'blocks of pixels in the master template image.'
 print(msg)
 print('Happy 40th Birthday Zoe!')
